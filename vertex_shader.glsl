@@ -1,0 +1,11 @@
+
+#version 330
+in vec2 in_vert;
+// Get normalized coordinates
+in vec2 in_uv;
+out vec2 uv;
+void main()
+{
+	gl_Position = vec4(in_vert, 0., 1.);
+	uv = in_uv;
+}
