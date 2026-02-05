@@ -1,7 +1,7 @@
 
 #version 330
 
-uniform float time;
+//uniform float time;
 uniform sampler2D t0;
 in vec2 uv;
 out vec4 fragColor;
@@ -29,9 +29,6 @@ void main()
 {
 	float val = texture(t0, uv).r; // Stored in the red channel
 	fragColor = colormap(val);
-	if (abs(uv.x - time) < 0.001) {
-		fragColor = vec4(1.0,0,0,1.0);
-	}
 
 	// DISPLAY THE AUDIO DELTA
 
@@ -59,8 +56,5 @@ void main()
 		fragColor = vec4(1.0, 0.0, 0.0, 1.0);
 	}
 	fragColor = vec4(val, diff1, diff2, 1.0);
-	//fragColor = colormap(val * diff1);
 	fragColor = colormap(val);
-
-	// time;
 }

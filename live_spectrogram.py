@@ -127,7 +127,7 @@ class RealtimeSpectrogram(arcade.Window):
 		self.clear()
 
 		if self.initialized:
-			self.prog['time'] = self.total_time
+			#self.prog['time'] = self.total_time
 			self.tex.use(0)
 			self.quad_fs.render(self.prog)
 

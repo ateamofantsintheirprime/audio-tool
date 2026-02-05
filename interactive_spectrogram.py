@@ -10,6 +10,9 @@ class InteractiveSpectrogram(arcade.Window):
 	def __init__(self, raw_signal, samplerate):
 		super().__init__(SCREEN_WIDTH, SCREEN_HEIGHT, "Shader Spectrogram", gl_version=(3, 3))
 		self.background_color = arcade.color.ALMOND
+
+		self.raw_signal = np.ascontiguousarray(raw_signal)
+		self.samplerate = samplerate
 		
 		# Produce spectral data from raw signal
 		magnitudes, frequencies = STFT(raw_signal=raw_signal, samplerate=samplerate, chunk_size=4096, chunk_hop=256)
@@ -47,21 +50,39 @@ class InteractiveSpectrogram(arcade.Window):
 		# Create a variable to track program run time
 		self.total_time = 0
 		self.current_frame = 0
+		self.is_playing = False
 
 		# Setup audio playback stream 
-# 		stream = sd.OutputStream(
-# 			samplerate=samplerate
-# 		)
+		self.stream = sd.OutputStream(
+			samplerate=samplerate,
+			channels=1
+ 		)
+
+		self.stream.start()
+		self.playback_position = 0
+		self.total_duration = len(raw_signal) / samplerate
 
 	def on_update(self, delta_time):
-		self.total_time += delta_time/10.0
+		if self.is_playing:
+			self.total_time == delta_time
+			samples_to_play = int(delta_time * self.samplerate)
+			end_pos = min(self.playback_position + samples_to_play, len(self.raw_signal))
+
+			if self.playback_position < len(self.raw_signal):
+				chunk = self.raw_signal[self.playback_position:end_pos]
+				self.stream.write(chunk)
+				self.playback_position = end_pos
+			else:
+				self.is_playing = False
 
 	def on_draw(self):
-		# Draw a simple circle
 		self.clear()
-		self.prog['time'] = self.total_time
 		self.tex.use(0)
 		self.quad_fs.render(self.prog)
+
+		progress = self.playback_position / len(self.raw_signal)
+		x_pos = progress * SCREEN_WIDTH
+		arcade.draw_line(x_pos, 0, x_pos, SCREEN_HEIGHT, arcade.color.RED, 3)
 
 	def on_key_press(self, key, modifiers):
 		if key == arcade.key.SPACE:
@@ -69,30 +90,37 @@ class InteractiveSpectrogram(arcade.Window):
 		elif key == arcade.key.R:
 			self.restart()
 	
-	def start_stream(self):
-		pass
+	def on_mouse_press(self, x, y, button, modifiers):
+		self.scrub(x / SCREEN_WIDTH)
 	
-	def togggle_play(self):
-		pass
+	def toggle_play(self):
+		self.is_playing = not self.is_playing
 
 	def restart(self):
-		pass
+		self.total_time = 0
+		self.playback_position = 0
+		self.is_playing = False
 
-	def scrub(self):
-		pass
+	def scrub(self, position):
+		self.playback_position = int(position * len(self.raw_signal))
+		self.total_time = position * self.total_duration
+		self.is_playing = False
 
-filename = 'etude2.mp3'
-# filename = 'blake.mp3'
-filename = 'chromatic.mp3'
-# filename = 'e3f3.mp3'
-# filename = 'e3f3_fast.mp3'
-# filename = 'sin_test.mp3' 
 
-data, samplerate = sf.read(filename, dtype='float32')
-if len(data.shape) > 1:
-	data = data[:,0]
+if __name__ == "__main__":
+	sound_dir = "sounds/"
+	filename = 'etude2.mp3'
+	# filename = 'blake.mp3'
+	filename = 'chromatic.mp3'
+	# filename = 'e3f3.mp3'
+	# filename = 'e3f3_fast.mp3'
+	# filename = 'sin_test.mp3' 
 
-window = InteractiveSpectrogram(data, samplerate)
+	data, samplerate = sf.read(sound_dir + filename, dtype='float32')
+	if len(data.shape) > 1:
+		data = data[:,0]
 
-arcade.run()
+	window = InteractiveSpectrogram(data, samplerate)
+
+	arcade.run()
 
