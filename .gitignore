@@ -1,0 +1,17 @@
+20250422_192606.mp4
+.DS_STORE
+__pycache__
+*.m4a
+example.py
+garden.jpg
+llm_spectrogram_shader.py
+main.py
+play.py
+spectro.py
+spectrogram.glsl
+test.py
+test_shader.py
+testing.py
+volume.py
+working_shader_play.py
+working_shader_spectrogram.py
