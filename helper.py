@@ -1,6 +1,7 @@
 from math import ceil
 import numpy as np
 np.set_printoptions(suppress=True, precision=4)
+import re
 
 notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
 def get_note_frequencies():
@@ -58,7 +59,39 @@ def STFT(raw_signal, samplerate, chunk_size, chunk_hop, pad_final_chunk = False,
 
 	return magnitudes, frequencies
 
+"""
+Some utility functions for handling the human-friendly labelling of midi notes
+"""
+
+def note_label_to_midi(label: str):
+	note_id = -1
+	for idx, note_name in enumerate(notes):
+		if note_name in label.upper():
+			note_id=idx
+	if note_id == -1:
+		return None
+
+	octave = re.search(r"\d+", label)
+	if octave == None:
+		return None
+	octave = int(octave.group())
+	return note_id + (octave+1)*12
+
+def midi_to_note_label(midi_id: int):
+	octave = midi_id // 12 -1 
+	note_name = notes[midi_id % 12]
+	return f"{note_name}{octave}" 
 
 if __name__ == "__main__":
 	test_signal = list(range(20))
-	print(STFT(test_signal, 1, 5, 4))
+	test_label = "A#4"
+	test_midi_id = note_label_to_midi(test_label)
+
+	assert note_label_to_midi("A0") == 21
+	assert note_label_to_midi("C4") == 60
+	assert note_label_to_midi("A4") == 69
+	assert note_label_to_midi("C8") == 108
+	assert note_label_to_midi("G9") == 127
+	assert note_label_to_midi("A#4") == 70
+
+	#print(STFT(test_signal, 1, 5, 4))
